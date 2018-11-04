@@ -22,9 +22,8 @@ namespace TODOList.Business.Services
         public TaskService()
         {
             string pathDb = HostingEnvironment.MapPath(@"/App_Data/Database.txt");
-            string pathId = HostingEnvironment.MapPath(@"/App_Data/LastId.txt");
 
-            db = new CustomDB(pathDb, pathId);
+            db = new CustomDB(pathDb);
         }
 
         public void Create(TaskDTO taskDTO)
@@ -35,14 +34,16 @@ namespace TODOList.Business.Services
 
         public void Delete(int id)
         {
-            db.Delete(id);
-            
+            if (db.Find(id))
+            {
+                db.Delete(id);
+            }
         }
 
-        public List<TaskDTO> GetAllTasks()
+        public IEnumerable<TaskDTO> GetAllTasks()
         {
             var mapper = new MapperConfiguration(task => task.CreateMap<Task, TaskDTO>()).CreateMapper();
-            return mapper.Map<List<Task>, List<TaskDTO>>(db.GetAll());
+            return mapper.Map<IEnumerable<Task>, IEnumerable<TaskDTO>>(db.GetAll());
         }
 
         public TaskDTO GetTask(int? id)

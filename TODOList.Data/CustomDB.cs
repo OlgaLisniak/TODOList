@@ -8,24 +8,22 @@ namespace TODOList.Data
 {
     public class CustomDB
     {
-        public string FilePathDB { get; set; }
-        private string FilePathId { get; set; }
+        private string FilePathDB { get; set; }
 
-        public CustomDB(string pathDb, string pathId)
+        public CustomDB(string pathDb)
         {
             FilePathDB = pathDb;
-            FilePathId = pathId;
 
-            if (!File.Exists(FilePathId))
+            if (!File.Exists(FilePathDB))
             {
-                File.WriteAllText(FilePathId, "0");
+                File.WriteAllText(FilePathDB, "0");
             }
         }
 
-        public List<Task> GetAll()
+        public IEnumerable<Task> GetAll()
         {
             List<Task> tasks = new List<Task>();
-            List<string> lines = File.ReadLines(FilePathDB).ToList();
+            var lines = ReadLines(FilePathDB);
 
             for (int i = 0; i < lines.Count() - 1; i+=2)
             {
@@ -38,7 +36,7 @@ namespace TODOList.Data
 
         public Task Get(int? id)
         {
-            List<string> lines = File.ReadLines(FilePathDB).ToList();
+            var lines = ReadLines(FilePathDB);
 
             for (int i = 0; i < lines.Count() - 1; i += 2)
             {
@@ -53,15 +51,25 @@ namespace TODOList.Data
 
         public void Create(Task task)
         {
-            task.Id = Convert.ToInt32(File.ReadAllText(FilePathId)) + 1;
+            task.Id = Convert.ToInt32(GetFirstLine(FilePathDB)) + 1;
+            
+            List<string> data = ReadLines(FilePathDB);
+
+            File.WriteAllText(FilePathDB, task.Id.ToString());
+
+            File.AppendAllText(FilePathDB, "\n");
+
+            if (data.Count > 0)
+            {
+                File.AppendAllLines(FilePathDB, data);
+            }
 
             File.AppendAllText(FilePathDB, task.ToString());
-            File.WriteAllText(FilePathId, task.Id.ToString());
         }
 
         public void Update(Task task)
         {
-            var lines = File.ReadLines(FilePathDB).ToList();
+            var lines = ReadLines(FilePathDB);
 
             for (int i = 0; i < lines.Count() - 1; i+=2)
             {
@@ -69,14 +77,15 @@ namespace TODOList.Data
                 {
                     lines[i + 1] = lines[i + 1].Replace(lines[i + 1], task.Title);
 
-                    File.WriteAllLines(FilePathDB, lines);
+                    File.WriteAllText(FilePathDB, GetFirstLine(FilePathDB) + "\n");
+                    File.AppendAllLines(FilePathDB, lines);
                 }
             }
         }
 
         public void Delete(int id)
         {
-            var lines = File.ReadLines(FilePathDB).ToList();
+            var lines = ReadLines(FilePathDB);
 
             for (int i = 0; i < lines.Count() - 1; i += 2)
             {
@@ -85,9 +94,34 @@ namespace TODOList.Data
                     lines.Remove(lines[i]);
                     lines.Remove(lines[i]);
 
-                    File.WriteAllLines(FilePathDB, lines);
+                    File.WriteAllText(FilePathDB, GetFirstLine(FilePathDB) + "\n");
+                    File.AppendAllLines(FilePathDB, lines);
                 }
             }
+        }
+
+        public bool Find(int id)
+        {
+            var lines = ReadLines(FilePathDB);
+
+            for (int i = 0; i < lines.Count() - 1; i += 2)
+            {
+                if (id == Convert.ToInt32(lines[i]))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        private List<string> ReadLines(string path)
+        {
+            return File.ReadLines(path).Skip(1).ToList();
+        }
+
+        private string GetFirstLine(string path)
+        {
+            return File.ReadLines(path).ToList()[0];
         }
     }
 }

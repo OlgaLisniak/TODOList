@@ -5,7 +5,7 @@ namespace TODOList.Business.Interfaces
 {
     public interface ITaskService
     {
-        List<TaskDTO> GetAllTasks();
+        IEnumerable<TaskDTO> GetAllTasks();
         TaskDTO GetTask(int? id);
         void Create(TaskDTO task);
         void Update(TaskDTO task);

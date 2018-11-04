@@ -1,23 +1,19 @@
 ﻿using System.Net;
 using System.Web.Mvc;
 using TODOList.Business.DTO;
+using TODOList.Business.Interfaces;
 using TODOList.Business.Services;
 
 namespace TODOList.Controllers
 {
     public class TaskController : Controller
     {
-        private TaskService db;
-
-        public TaskController()
-        {
-            db = new TaskService();
-        }
-
+        private ITaskService taskService = new TaskService();
+        
         // GET: Task
         public ActionResult Index()
         {
-            return View(db.GetAllTasks());
+            return View(taskService.GetAllTasks());
         }
         
         // GET: Task/Create
@@ -33,7 +29,7 @@ namespace TODOList.Controllers
         {
             if (ModelState.IsValid)
             {
-                db.Create(taskDTO);
+                taskService.Create(taskDTO);
                 return RedirectToAction("Index");
             }
 
@@ -48,7 +44,7 @@ namespace TODOList.Controllers
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
 
-            TaskDTO taskDTO = db.GetTask(id);
+            TaskDTO taskDTO = taskService.GetTask(id);
 
             if (taskDTO == null)
             {
@@ -64,7 +60,7 @@ namespace TODOList.Controllers
         {
             if (ModelState.IsValid)
             {
-                db.Update(taskDTO);
+                taskService.Update(taskDTO);
                 return RedirectToAction("Index");
             }
             return View(taskDTO);
@@ -77,7 +73,7 @@ namespace TODOList.Controllers
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
-            TaskDTO taskDTO = db.GetTask(id);
+            TaskDTO taskDTO = taskService.GetTask(id);
             if (taskDTO == null)
             {
                 return HttpNotFound();
@@ -90,8 +86,9 @@ namespace TODOList.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult DeleteConfirmed(int id)
         {
-            TaskDTO taskDTO = db.GetTask(id);
-            db.Delete(id);
+            var taskDTO = taskService.GetTask(id);
+            taskService.Delete(id);
+
             return RedirectToAction("Index");
         }
     }
